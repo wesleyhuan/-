@@ -1,0 +1,7 @@
+{
+  "name": "LibraryQR - 企業書籍管理系統",
+  "description": "一個基於 QR Code 的內部書籍借還管理系統，專為 HR 設計，簡化書籍建檔、使用者註冊與借還流程。",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
