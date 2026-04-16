@@ -2,10 +2,15 @@ import Anthropic from '@anthropic-ai/sdk'
 import type { AIProvider, AIMessage, InterviewType, Feedback, SessionSummary, AnswerForSummary } from './types'
 import { buildFeedbackPrompt, parseFeedbackResponse, buildSummaryPrompt, parseSummaryResponse } from '../prompts/feedback'
 
-const MODEL = 'claude-sonnet-4-6'
+const MODEL = 'claude-opus-4-7'
 
 function getClient() {
   return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+}
+
+function extractText(content: Anthropic.Messages.ContentBlock[]): string {
+  const block = content.find((b) => b.type === 'text')
+  return block?.type === 'text' ? block.text : ''
 }
 
 export const claudeProvider: AIProvider = {
@@ -13,7 +18,8 @@ export const claudeProvider: AIProvider = {
     const client = getClient()
     const stream = await client.messages.stream({
       model: MODEL,
-      max_tokens: 1024,
+      max_tokens: 4096,
+      thinking: { type: 'adaptive' },
       system: [
         {
           type: 'text',
@@ -43,11 +49,12 @@ export const claudeProvider: AIProvider = {
     const prompt = buildFeedbackPrompt(question, answer, type)
     const response = await client.messages.create({
       model: MODEL,
-      max_tokens: 2048,
+      max_tokens: 4096,
+      thinking: { type: 'adaptive' },
       messages: [{ role: 'user', content: prompt }],
     })
 
-    const text = response.content[0].type === 'text' ? response.content[0].text : ''
+    const text = extractText(response.content)
     return parseFeedbackResponse(text)
   },
 
@@ -56,11 +63,12 @@ export const claudeProvider: AIProvider = {
     const prompt = buildSummaryPrompt(answers)
     const response = await client.messages.create({
       model: MODEL,
-      max_tokens: 2048,
+      max_tokens: 4096,
+      thinking: { type: 'adaptive' },
       messages: [{ role: 'user', content: prompt }],
     })
 
-    const text = response.content[0].type === 'text' ? response.content[0].text : ''
+    const text = extractText(response.content)
     return parseSummaryResponse(text)
   },
 }
